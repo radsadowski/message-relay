@@ -1,7 +1,9 @@
 # outbox
 
+Implementation of a Transactional outbox pattern in Go.
 
 ## Architecture
+
 ```mermaid
 flowchart LR
   subgraph a [Application]
@@ -11,7 +13,7 @@ flowchart LR
         direction RL
         oDB[(Outbox Table)]
         sDB[(Service Table)]
-        oDB -. transaction .- sDB 
+        oDB -. transaction .- sDB
     end
         s --> db
   end
