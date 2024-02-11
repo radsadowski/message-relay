@@ -32,8 +32,8 @@ flowchart LR
   cY[Consumer Y]
   cZ[Consumer Z]
   end
-  a <--> o
-  o --> mbr
+  a <-->|reads outbox table| o
+  o -->|publish to broker| mbr
   mbr --> cX
   mbr --> cY
   mbr --> cZ
