@@ -16,14 +16,12 @@ flowchart LR
         s --> db
   end
 
-  subgraph o [Outbox]
+  subgraph mr [Message Relay]
     direction LR
-    os[Outbox Service]
   end
 
   subgraph mbr [Message Broker]
     direction LR
-    mbrs[RabbitMQ]
   end
 
   subgraph c [Consumers]
@@ -32,8 +30,8 @@ flowchart LR
   cY[Consumer Y]
   cZ[Consumer Z]
   end
-  a <-->|reads outbox table| o
-  o -->|publish to broker| mbr
+  a <-->|reads outbox table| mr
+  mr --> mbr
   mbr --> cX
   mbr --> cY
   mbr --> cZ
