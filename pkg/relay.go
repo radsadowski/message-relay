@@ -8,11 +8,11 @@ import (
 )
 
 type ErrMessageAlreadySent struct {
-	MessageID string
+	MessageID int
 }
 
 func (e *ErrMessageAlreadySent) Error() string {
-	return fmt.Sprintf("message with id %s has already been sent", e.MessageID)
+	return fmt.Sprintf("message with id %d has already been sent", e.MessageID)
 }
 
 type Relay struct {

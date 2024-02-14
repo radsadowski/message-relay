@@ -5,7 +5,7 @@ import (
 )
 
 type Message struct {
-	ID        string `json:"id"`
+	ID        int    `json:"id"`
 	Payload   string `json:"payload"`
 	IsSent    bool   `json:"is_sent"`
 	CreatedAt string `json:"created_at"`

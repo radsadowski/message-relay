@@ -18,20 +18,23 @@ func failOnError(err error, msg string) {
 }
 
 func main() {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
 	dsn := "admin:secret123@tcp(127.0.0.1:3306)/outbox?charset=utf8mb4&parseTime=True&loc=Local"
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
 		failOnError(err, "Failed to connect to database")
 	}
 	err = db.AutoMigrate(&pkg.SQLMessage{})
-  if err != nil {
-    failOnError(err, "Failed to migrate database")
-  }
-
-	repo := &pkg.MySQLMessageOutboxRepository{DB: db}
-	msg, err := repo.FetchMessage()
 	if err != nil {
-		failOnError(err, "Failed to fetch message")
+		failOnError(err, "Failed to migrate database")
+	}
+
+	if db.Create(
+		&pkg.SQLMessage{ID: 1, Payload: "Hello, World!", IsSent: false, CreatedAt: time.Now().Format(time.RFC3339)},
+	).Error != nil {
+		failOnError(err, "Failed to create message")
 	}
 
 	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
@@ -52,18 +55,10 @@ func main() {
 	)
 	failOnError(err, "Failed to declare a queue")
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	publisher := &pkg.RabbitMQPublisher{
+	relay := pkg.NewRelay(&pkg.MySQLMessageOutboxRepository{DB: db}, &pkg.RabbitMQPublisher{
 		Channel: ch,
 		Queue:   q,
-	}
-	err = publisher.Publish(ctx, msg)
-	failOnError(err, "Failed to publish a message")
-	log.Printf(" [x] Sent %s\n", "encoded-json")
-	// start relay
-	// connect to database
-	// connect to message broker
-	// consume message from outbox that are not sent
+	})
+	err = relay.RelayMessage(ctx)
+	failOnError(err, "Failed to relay message")
 }
