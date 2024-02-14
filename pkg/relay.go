@@ -3,6 +3,8 @@ package pkg
 import (
 	"context"
 	"fmt"
+
+	"github.com/radekska/outbox/pkg/outbox"
 )
 
 type ErrMessageAlreadySent struct {
@@ -14,11 +16,11 @@ func (e *ErrMessageAlreadySent) Error() string {
 }
 
 type Relay struct {
-	outboxRepository MessageOutboxRepository
+	outboxRepository outbox.MessageOutboxRepository
 	publisher        Publisher
 }
 
-func NewRelay(outboxRepo MessageOutboxRepository, publisher Publisher) *Relay {
+func NewRelay(outboxRepo outbox.MessageOutboxRepository, publisher Publisher) *Relay {
 	return &Relay{
 		outboxRepository: outboxRepo,
 		publisher:        publisher,

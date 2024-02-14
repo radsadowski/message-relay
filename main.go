@@ -7,6 +7,8 @@ import (
 
 	amqp "github.com/rabbitmq/amqp091-go"
 	"github.com/radekska/outbox/pkg"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 )
 
 func failOnError(err error, msg string) {
@@ -16,6 +18,22 @@ func failOnError(err error, msg string) {
 }
 
 func main() {
+	dsn := "admin:secret123@tcp(127.0.0.1:3306)/outbox?charset=utf8mb4&parseTime=True&loc=Local"
+	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	if err != nil {
+		failOnError(err, "Failed to connect to database")
+	}
+	err = db.AutoMigrate(&pkg.SQLMessage{})
+  if err != nil {
+    failOnError(err, "Failed to migrate database")
+  }
+
+	repo := &pkg.MySQLMessageOutboxRepository{DB: db}
+	msg, err := repo.FetchMessage()
+	if err != nil {
+		failOnError(err, "Failed to fetch message")
+	}
+
 	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
 	failOnError(err, "Failed to connect to RabbitMQ")
 	defer conn.Close()
@@ -41,10 +59,7 @@ func main() {
 		Channel: ch,
 		Queue:   q,
 	}
-	err = publisher.Publish(
-		ctx,
-		&pkg.Message{ID: "test-msg", Payload: "encoded-json", IsSent: false, CreatedAt: "2022-01-01 10:00:00"},
-	)
+	err = publisher.Publish(ctx, msg)
 	failOnError(err, "Failed to publish a message")
 	log.Printf(" [x] Sent %s\n", "encoded-json")
 	// start relay

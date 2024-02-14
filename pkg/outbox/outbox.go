@@ -1,6 +1,8 @@
-package pkg
+package outbox
 
-import "context"
+import (
+	"context"
+)
 
 type Message struct {
 	ID        string `json:"id"`
@@ -14,10 +16,4 @@ type MessageOutboxRepository interface {
 	FetchMessage(ctx context.Context) (*Message, error)
 	// SetMessageAsSent is responsible for setting the message as sent
 	SetMessageAsSent(ctx context.Context, msg *Message) error
-}
-
-type MySQLMessageOutboxRepository struct{}
-
-func (m *MySQLMessageOutboxRepository) FetchMessage() (*Message, error) {
-	return nil, nil
 }
