@@ -2,9 +2,12 @@ package main
 
 import (
 	"context"
-	"log"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 	"github.com/radekska/outbox/pkg"
@@ -57,28 +60,38 @@ func init() {
 }
 
 func main() {
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 	// TODO: - add a defer statement to close the database connection and the RabbitMQ connection
-	// TODO: - gracefully handle the termination of the program
 	// TODO: - tests
-	// TODO: - better logging
 	// TODO: - metrics
 	// TODO: - health checks
 	// TODO: - add a retry mechanism in case of a failure
 	// TODO: - add a way to configure the number of retries
-	// TODO: - add a way to control the loop
 
 	publisher, err := pkg.NewRabbitMQPublisher(ch, queue)
 	if err != nil {
 		log.Fatalf("error while creating publisher: %v", err)
 	}
 	relay := pkg.NewRelay(&pkg.MySQLMessageOutboxRepository{DB: db}, publisher)
+
+	sigCh := make(chan os.Signal, 1)
+	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGKILL)
+
 	for {
-		log.Println("Relaying message")
-		err := relay.RelayMessage(ctx)
-		if err != nil {
-			log.Printf("error while relaying message: %v", err)
+		select {
+		case s := <-sigCh:
+			log.Warnf("received signal: %v", s)
+			log.Warn("quitting gracefully...")
+			cancel()
+			os.Exit(0)
+		default:
+			log.Debug("relaying message")
+			err := relay.RelayMessage(ctx)
+			if err != nil {
+				log.Errorf("error while relaying message: %v", err)
+			}
+			time.Sleep(1000 * time.Millisecond)
 		}
-		time.Sleep(100 * time.Millisecond)
 	}
 }
