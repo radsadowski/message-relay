@@ -22,7 +22,8 @@ type MySQLMessageOutboxRepository struct {
 
 func (m *MySQLMessageOutboxRepository) FetchMessage(ctx context.Context) (*outbox.Message, error) {
 	var r SQLMessage
-	tx := m.DB.WithContext(ctx).Model(&SQLMessage{IsSent: false}).First(&r)
+
+	tx := m.DB.WithContext(ctx).Where(map[string]interface{}{"is_sent": false}).Limit(1).Find(&r)
 	if tx.Error != nil {
 		return nil, tx.Error
 	}

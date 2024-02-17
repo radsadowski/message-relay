@@ -1,7 +1,8 @@
 package main
 
 import (
-	"math/rand"
+	"context"
+	"log"
 	"os"
 	"time"
 
@@ -29,54 +30,55 @@ func init() {
 		panic(err)
 	}
 
-	db.AutoMigrate(pkg.SQLMessage{})
-
-	for {
-		t := time.Unix(rand.Int63n(1708162571), 0)
-		tx := db.Create(&pkg.SQLMessage{Payload: "Hello, world!", CreatedAt: t, IsSent: false})
-		if tx.Error != nil {
-			panic(tx.Error)
-		}
+	brokerURL, ok := os.LookupEnv("BROKER_URL")
+	if !ok {
+		panic("BROKER_URL is not set")
+	}
+	conn, err := amqp.Dial(brokerURL)
+	if err != nil {
+		panic(err)
+	}
+	ch, err = conn.Channel()
+	if err != nil {
+		panic(err)
 	}
 
-	// brokerURL, ok := os.LookupEnv("BROKER_URL")
-	// if !ok {
-	// 	panic("BROKER_URL is not set")
-	// }
-	// conn, err := amqp.Dial(brokerURL)
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// ch, err := conn.Channel()
-	// if err != nil {
-	// 	panic(err)
-	// }
-	//
-	// queue, err = ch.QueueDeclare(
-	// 	"hello", // name
-	// 	false,   // durable
-	// 	false,   // delete when unused
-	// 	false,   // exclusive
-	// 	false,   // no-wait
-	// 	nil,     // arguments
-	// )
-	// if err != nil {
-	// 	panic(err)
-	// }
+	queue, err = ch.QueueDeclare(
+		"hello", // name
+		false,   // durable
+		false,   // delete when unused
+		false,   // exclusive
+		false,   // no-wait
+		nil,     // arguments
+	)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func main() {
-	// ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	// defer cancel()
-	//
-	// relay := pkg.NewRelay(&pkg.MySQLMessageOutboxRepository{DB: db}, &pkg.RabbitMQPublisher{
-	// 	Channel: ch,
-	// 	Queue:   queue,
-	// })
-	// for {
-	// 	log.Println("Relaying message")
-	// 	err := relay.RelayMessage(ctx)
-	// 	failOnError(err, "Failed to relay message")
-	// 	time.Sleep(100 * time.Millisecond)
-	// }
+	ctx := context.Background()
+	// TODO: - add a defer statement to close the database connection and the RabbitMQ connection
+	// TODO: - gracefully handle the termination of the program
+	// TODO: - tests
+	// TODO: - better logging
+	// TODO: - metrics
+	// TODO: - health checks
+	// TODO: - add a retry mechanism in case of a failure
+	// TODO: - add a way to configure the number of retries
+	// TODO: - add a way to control the loop
+
+	publisher, err := pkg.NewRabbitMQPublisher(ch, queue)
+	if err != nil {
+		log.Fatalf("error while creating publisher: %v", err)
+	}
+	relay := pkg.NewRelay(&pkg.MySQLMessageOutboxRepository{DB: db}, publisher)
+	for {
+		log.Println("Relaying message")
+		err := relay.RelayMessage(ctx)
+		if err != nil {
+			log.Printf("error while relaying message: %v", err)
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
 }
