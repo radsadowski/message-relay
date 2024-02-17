@@ -1,5 +1,13 @@
 version: "3.9"
 services:
+  outbox:
+    build:
+      context: ../
+      dockerfile: ./docker/Dockerfile
+    restart: always
+    env_file:
+      - ../.env
+
   broker:
     image: rabbitmq:3.12.12-management
     restart: always

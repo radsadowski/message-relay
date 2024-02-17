@@ -2,13 +2,14 @@ package outbox
 
 import (
 	"context"
+	"time"
 )
 
 type Message struct {
-	ID        int    `json:"id"`
-	Payload   string `json:"payload"`
-	IsSent    bool   `json:"is_sent"`
-	CreatedAt string `json:"created_at"`
+	ID        int       `json:"id"`
+	Payload   string    `json:"payload"`
+	IsSent    bool      `json:"is_sent"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 type MessageOutboxRepository interface {

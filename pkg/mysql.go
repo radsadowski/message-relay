@@ -2,6 +2,7 @@ package pkg
 
 import (
 	"context"
+	"time"
 
 	"github.com/radekska/outbox/pkg/outbox"
 	"gorm.io/gorm"
@@ -10,8 +11,8 @@ import (
 type SQLMessage struct {
 	ID        int `gorm:"primaryKey;autoIncrement:true"`
 	Payload   string
-	IsSent    bool   `gorm:"index"`
-	CreatedAt string `gorm:"index"`
+	IsSent    bool      `gorm:"index"`
+	CreatedAt time.Time `gorm:"index"`
 }
 
 type MySQLMessageOutboxRepository struct {
