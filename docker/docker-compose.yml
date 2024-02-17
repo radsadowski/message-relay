@@ -24,3 +24,5 @@ services:
       MYSQL_DATABASE: outbox
     ports:
       - 3306:3306
+    volumes:
+      - ./outbox.sql:/docker-entrypoint-initdb.d/outbox.sql

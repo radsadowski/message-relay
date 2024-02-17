@@ -1,4 +1,4 @@
-package outbox
+package relay
 
 import (
 	"context"
@@ -8,7 +8,6 @@ import (
 type Message struct {
 	ID        int       `json:"id"`
 	Payload   string    `json:"payload"`
-	IsSent    bool      `json:"is_sent"`
 	CreatedAt time.Time `json:"created_at"`
 }
 

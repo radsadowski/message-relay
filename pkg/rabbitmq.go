@@ -3,10 +3,10 @@ package pkg
 import (
 	"context"
 	"encoding/json"
-	"errors"
 
 	amqp "github.com/rabbitmq/amqp091-go"
-	"github.com/radekska/outbox/pkg/outbox"
+	"github.com/radekska/outbox/pkg/relay"
+	log "github.com/sirupsen/logrus"
 )
 
 type RabbitMQPublisher struct {
@@ -14,9 +14,26 @@ type RabbitMQPublisher struct {
 	Queue   amqp.Queue
 }
 
-func NewRabbitMQPublisher(ch *amqp.Channel, queue amqp.Queue) (*RabbitMQPublisher, error) {
-	if ch == nil {
-		return nil, errors.New("channel is nil")
+func NewRabbitMQPublisher(brokerURL string) (*RabbitMQPublisher, error) {
+	conn, err := amqp.Dial(brokerURL)
+	if err != nil {
+		return nil, err
+	}
+	ch, err := conn.Channel()
+	if err != nil {
+		return nil, err
+	}
+
+	queue, err := ch.QueueDeclare(
+		"hello", // name
+		false,   // durable
+		false,   // delete when unused
+		false,   // exclusive
+		false,   // no-wait
+		nil,     // arguments
+	)
+	if err != nil {
+		return nil, err
 	}
 
 	return &RabbitMQPublisher{
@@ -26,7 +43,7 @@ func NewRabbitMQPublisher(ch *amqp.Channel, queue amqp.Queue) (*RabbitMQPublishe
 }
 
 // Publish is responsible for publishing the message to the message broker
-func (r *RabbitMQPublisher) Publish(ctx context.Context, msg *outbox.Message) error {
+func (r *RabbitMQPublisher) Publish(ctx context.Context, msg *relay.Message) error {
 	b, err := json.Marshal(msg)
 	if err != nil {
 		return err
@@ -36,4 +53,17 @@ func (r *RabbitMQPublisher) Publish(ctx context.Context, msg *outbox.Message) er
 		ContentType: "application/json",
 		Body:        b,
 	})
+}
+
+type RabbitMQRetrier struct {
+	logger *log.Logger
+}
+
+func (r *RabbitMQRetrier) Retry(ctx context.Context, err error) error {
+	e, ok := err.(*amqp.Error)
+	if !ok {
+		return nil
+	}
+	r.logger.Errorf("broker network error: %v", e)
+	return nil
 }

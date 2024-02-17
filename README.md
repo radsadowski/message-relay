@@ -1,4 +1,4 @@
-# outbox
+# Message Relay
 
 Implementation of a Transactional outbox pattern in Go.
 
@@ -38,3 +38,11 @@ flowchart LR
   mbr --> cY
   mbr --> cZ
 ```
+
+## Todo List
+
+- tests
+- metrics
+- health checks
+- add a retry mechanism in case of a failure
+- add a way to configure the number of retries
