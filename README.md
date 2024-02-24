@@ -1,6 +1,6 @@
 # Message Relay
 
-Implementation of a Transactional outbox pattern in Go.
+Implementation of the [transactional outbox pattern](https://microservices.io/patterns/data/transactional-outbox.html) in Go.
 
 ## Architecture
 
