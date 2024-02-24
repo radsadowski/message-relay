@@ -62,6 +62,7 @@ func (s *Service) Run(ctx context.Context, cancel context.CancelFunc) error {
 		select {
 		case signal := <-s.signalCh:
 			s.shutdown(cancel, signal)
+			// TODO: add health check endpoint
 		case <-ticker.C:
 			s.relay(ctx)
 		}
