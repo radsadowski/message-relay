@@ -6,7 +6,7 @@ package cmd
 import (
 	"context"
 
-	"github.com/radekska/outbox/pkg"
+	"github.com/radekska/outbox/pkg/service"
 	"github.com/urfave/cli/v2"
 )
 
@@ -16,9 +16,9 @@ var App = &cli.App{
 	Flags: []cli.Flag{databaseURLFlag, brokerURLFlag, relayIntervalFlag, batchSizeFlag, retriesCountFlag},
 	Action: func(cCtx *cli.Context) error {
 		// TODO: argument validation - we should validate DB and broker URLs based on their format
-		return pkg.Run(
+		return service.Start(
 			context.Background(),
-			&pkg.Config{
+			&service.Config{
 				DBURL:         cCtx.String("database-url"),
 				BrokerURL:     cCtx.String("broker-url"),
 				BatchSize:     cCtx.Int("batch-size"),

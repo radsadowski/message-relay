@@ -1,4 +1,4 @@
-package pkg
+package service
 
 import (
 	"context"
@@ -11,50 +11,37 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-type MySQLWithRabbitMQRelayInitializer struct {
-	DBURL     string
-	BrokerURL string
-	Logger    *log.Logger
-}
-
-func (m *MySQLWithRabbitMQRelayInitializer) Init() (*relay.Relay, error) {
-	publisher, err := NewRabbitMQPublisher(m.BrokerURL)
-	if err != nil {
-		return nil, err
-	}
-	repo, err := NewMySQLMessageOutboxRepository(m.DBURL)
-	if err != nil {
-		return nil, err
-	}
-	retriers := []relay.Retrier{&MySQLRetrier{DB: repo.DB, Logger: m.Logger}}
-	relay, err := relay.NewRelay(repo, publisher, retriers)
-	if err != nil {
-		return nil, err
-	}
-	return relay, nil
-}
-
-type Config struct {
-	DBURL         string
-	BrokerURL     string
-	BatchSize     int
-	RelayInterval time.Duration
-	RetriesCount  int
-}
-
+// Service is a struct that represents the service
 type Service struct {
 	messageRelay *relay.Relay
+	healthCh     chan struct{}
 	signalCh     chan os.Signal
 	logger       *log.Logger
 	config       *Config
 }
 
+// NewService is a constructor for the Service
 func NewService(messageRelay *relay.Relay, config *Config, logger *log.Logger) *Service {
 	signalCh := make(chan os.Signal, 1)
 	signal.Notify(signalCh, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGKILL)
-	return &Service{messageRelay: messageRelay, signalCh: signalCh, logger: logger, config: config}
+	healthCh := make(chan struct{})
+
+	go func() {
+		startHealthCheckServer(healthCh, logger)
+	}()
+	go func() {
+		startMetricsServer(logger)
+	}()
+	return &Service{
+		messageRelay: messageRelay,
+		signalCh:     signalCh,
+		logger:       logger,
+		config:       config,
+		healthCh:     healthCh,
+	}
 }
 
+// Run is a method that runs the service
 func (s *Service) Run(ctx context.Context, cancel context.CancelFunc) error {
 	s.logger.Info("starting the relay service...")
 	ticker := time.NewTicker(s.config.RelayInterval)
@@ -62,7 +49,8 @@ func (s *Service) Run(ctx context.Context, cancel context.CancelFunc) error {
 		select {
 		case signal := <-s.signalCh:
 			s.shutdown(cancel, signal)
-			// TODO: add health check endpoint
+		case <-s.healthCh:
+			s.logger.Info("health check passed")
 		case <-ticker.C:
 			s.relay(ctx)
 		}
@@ -70,10 +58,13 @@ func (s *Service) Run(ctx context.Context, cancel context.CancelFunc) error {
 }
 
 func (s *Service) relay(ctx context.Context) {
-	s.logger.Info("relaying message")
+	s.logger.Info("relaying message...")
 	err := s.messageRelay.RelayMessage(ctx)
 	if err != nil {
 		s.messageRelay.Retry(ctx, err)
+	} else {
+		s.logger.Info("message relayed successfully")
+		relayedMessagesCounter.Inc()
 	}
 }
 
@@ -84,7 +75,8 @@ func (s *Service) shutdown(cancel context.CancelFunc, signal os.Signal) {
 	os.Exit(0)
 }
 
-func Run(ctx context.Context, conf *Config) error {
+// Start is a function that starts the service
+func Start(ctx context.Context, conf *Config) error {
 	logger := log.New()
 	logger.SetReportCaller(true)
 	logger.SetFormatter(&log.TextFormatter{FullTimestamp: true})
