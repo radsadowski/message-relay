@@ -39,6 +39,7 @@ type Config struct {
 	BrokerURL     string
 	BatchSize     int
 	RelayInterval time.Duration
+	RetriesCount  int
 }
 
 type Service struct {
@@ -84,9 +85,13 @@ func (s *Service) shutdown(cancel context.CancelFunc, signal os.Signal) {
 
 func Run(ctx context.Context, conf *Config) error {
 	logger := log.New()
+	logger.SetReportCaller(true)
+	logger.SetFormatter(&log.TextFormatter{FullTimestamp: true})
+
 	initializer := &MySQLWithRabbitMQRelayInitializer{DBURL: conf.DBURL, BrokerURL: conf.BrokerURL, Logger: logger}
 	messageRelay, err := initializer.Init()
 	if err != nil {
+		logger.Errorf("failed to initialize the relay: %v", err)
 		return err
 	}
 	service := NewService(messageRelay, conf, logger)

@@ -37,3 +37,11 @@ var batchSizeFlag = &cli.IntFlag{
 	Value:    100,
 	Required: false,
 }
+
+var retriesCountFlag = &cli.IntFlag{
+	Name:     "retries",
+	Usage:    "Number of retries for each message",
+	EnvVars:  []string{"RETRIES"},
+	Value:    100,
+	Required: false,
+}

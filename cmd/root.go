@@ -13,7 +13,7 @@ import (
 var App = &cli.App{
 	Name:  "message-relay",
 	Usage: "Relay messages from the outbox to the broker",
-	Flags: []cli.Flag{databaseURLFlag, brokerURLFlag, relayIntervalFlag, batchSizeFlag},
+	Flags: []cli.Flag{databaseURLFlag, brokerURLFlag, relayIntervalFlag, batchSizeFlag, retriesCountFlag},
 	Action: func(cCtx *cli.Context) error {
 		// TODO: argument validation - we should validate DB and broker URLs based on their format
 		return pkg.Run(
@@ -23,6 +23,7 @@ var App = &cli.App{
 				BrokerURL:     cCtx.String("broker-url"),
 				BatchSize:     cCtx.Int("batch-size"),
 				RelayInterval: cCtx.Duration("relay-interval"),
+				RetriesCount:  cCtx.Int("retries"),
 			},
 		)
 	},
