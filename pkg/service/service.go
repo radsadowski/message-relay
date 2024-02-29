@@ -21,13 +21,13 @@ type Service struct {
 }
 
 // NewService is a constructor for the Service
-func NewService(messageRelay *relay.Relay, config *Config, logger *log.Logger) *Service {
+func NewService(ctx context.Context, messageRelay *relay.Relay, config *Config, logger *log.Logger) *Service {
 	signalCh := make(chan os.Signal, 1)
 	signal.Notify(signalCh, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGKILL)
 	healthCh := make(chan struct{})
 
 	go func() {
-		startHealthCheckServer(healthCh, logger)
+		startHealthCheckServer(ctx, healthCh, logger)
 	}()
 	go func() {
 		startMetricsServer(logger)
@@ -87,7 +87,7 @@ func Start(ctx context.Context, conf *Config) error {
 		logger.Errorf("failed to initialize the relay: %v", err)
 		return err
 	}
-	service := NewService(messageRelay, conf, logger)
+	service := NewService(ctx, messageRelay, conf, logger)
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 	return service.Run(ctx, cancel)
