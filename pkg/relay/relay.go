@@ -2,7 +2,16 @@ package relay
 
 import (
 	"context"
+	"fmt"
 )
+
+type MessageAlreadySentError struct {
+	MessageID int
+}
+
+func (e *MessageAlreadySentError) Error() string {
+	return fmt.Sprintf("message with id %d has already been sent", e.MessageID)
+}
 
 type Retrier interface {
 	Retry(ctx context.Context, err error) error
@@ -26,6 +35,9 @@ func (r *Relay) RelayMessage(ctx context.Context) error {
 	m, err := r.repo.FetchMessage(ctx)
 	if err != nil {
 		return err
+	}
+	if m.IsSent {
+		return &MessageAlreadySentError{MessageID: m.ID}
 	}
 	err = r.publisher.Publish(ctx, m)
 	if err != nil {

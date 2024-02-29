@@ -9,7 +9,7 @@ import (
 func healthCheckHandler(healthCh chan<- struct{}) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		healthCh <- struct{}{}
-		w.WriteHeader(http.StatusOK)
+		w.WriteHeader(http.StatusNoContent)
 	}
 }
 

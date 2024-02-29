@@ -5,10 +5,12 @@ import (
 	"time"
 )
 
+// Message is a structure that represents a message that is going to be relayed
 type Message struct {
 	ID        int       `json:"id"`
 	Payload   string    `json:"payload"`
 	CreatedAt time.Time `json:"created_at"`
+	IsSent    bool      `json:"is_sent"`
 }
 
 type MessageOutboxRepository interface {
