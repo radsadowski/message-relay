@@ -76,19 +76,22 @@ func (s *Service) shutdown(cancel context.CancelFunc, signal os.Signal) {
 }
 
 // Start is a function that starts the service
-func Start(ctx context.Context, conf *Config) error {
+func Start(ctx context.Context, conf *Config, getInit GetInitializerFunc) error {
 	logger := log.New()
 	logger.SetReportCaller(true)
 	logger.SetFormatter(&log.TextFormatter{FullTimestamp: true})
 
-	initializer := &MySQLWithRabbitMQRelayInitializer{DBURL: conf.DBURL, BrokerURL: conf.BrokerURL, Logger: logger}
-	messageRelay, err := initializer.Init()
+	initializer, err := getInit(conf)
+	if err != nil {
+		logger.Errorf("failed to initialize the relay: %v", err)
+		return err
+	}
+	messageRelay, err := initializer.InitRelay()
 	if err != nil {
 		logger.Errorf("failed to initialize the relay: %v", err)
 		return err
 	}
 	service := NewService(ctx, messageRelay, conf, logger)
 	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
 	return service.Run(ctx, cancel)
 }

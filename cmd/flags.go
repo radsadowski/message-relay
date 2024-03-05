@@ -14,12 +14,28 @@ var databaseURLFlag = &cli.StringFlag{
 	Required: true,
 }
 
+var databaseTypeFlag = &cli.StringFlag{
+	Name:     "database-type",
+	Usage:    "Type of the database",
+	EnvVars:  []string{"DATABASE_TYPE"},
+	Required: false,
+	Value:    "mysql",
+}
+
 var brokerURLFlag = &cli.StringFlag{
 	Name:     "broker-url",
 	Aliases:  []string{"b"},
 	Usage:    "URL to the broker",
 	EnvVars:  []string{"BROKER_URL"},
 	Required: true,
+}
+
+var brokerTypeFlag = &cli.StringFlag{
+	Name:     "broker-type",
+	Usage:    "Type of the broker",
+	EnvVars:  []string{"BROKER_TYPE"},
+	Required: false,
+	Value:    "rabbitmq",
 }
 
 var relayIntervalFlag = &cli.DurationFlag{
