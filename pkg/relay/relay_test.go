@@ -47,10 +47,9 @@ func TestRelayMessage(t *testing.T) {
 		m := &Message{ID: 1, Payload: "encoded-json", IsSent: false, CreatedAt: time.Unix(111, 0)}
 		repo := &DummyOutboxRepository{m: m}
 		pub := &DummyPublisher{}
-		relay, err := NewRelay(repo, pub, []Retrier{})
-		assert.NoError(t, err)
+		relay := &Relay{Repo: repo, Publisher: pub}
 
-		err = relay.RelayMessage(ctx)
+		err := relay.RelayMessage(ctx)
 
 		assert.NoError(t, err)
 		assert.Equal(t, true, m.IsSent)
@@ -60,10 +59,9 @@ func TestRelayMessage(t *testing.T) {
 		m := &Message{ID: 1, Payload: "encoded-json", IsSent: true, CreatedAt: time.Unix(111, 0)}
 		repo := &DummyOutboxRepository{m: m}
 		pub := &DummyPublisher{}
-		relay, err := NewRelay(repo, pub, []Retrier{})
-		assert.NoError(t, err)
+		relay := &Relay{Repo: repo, Publisher: pub}
 
-		err = relay.RelayMessage(ctx)
+		err := relay.RelayMessage(ctx)
 
 		assert.Error(t, err)
 		assert.Equal(t, "message with id 1 has already been sent", err.Error())
@@ -74,10 +72,10 @@ func TestRelayMessage(t *testing.T) {
 		m := &Message{ID: 1, Payload: "encoded-json", IsSent: false, CreatedAt: time.Unix(111, 0)}
 		repo := &DummyOutboxRepository{m: m, err: errors.New("error fetching message")}
 		pub := &DummyPublisher{}
-		relay, err := NewRelay(repo, pub, []Retrier{})
-		assert.NoError(t, err)
+		relay := &Relay{Repo: repo, Publisher: pub}
 
-		err = relay.RelayMessage(ctx)
+		err := relay.RelayMessage(ctx)
+
 		assert.Error(t, err)
 		assert.Equal(t, "error fetching message", err.Error())
 		assert.Equal(t, false, m.IsSent)
@@ -87,10 +85,9 @@ func TestRelayMessage(t *testing.T) {
 		m := &Message{ID: 1, Payload: "encoded-json", IsSent: false, CreatedAt: time.Unix(111, 0)}
 		repo := &DummyOutboxRepository{m: m}
 		pub := &DummyPublisher{err: errors.New("error publishing message")}
-		relay, err := NewRelay(repo, pub, []Retrier{})
-		assert.NoError(t, err)
+		relay := &Relay{Repo: repo, Publisher: pub}
 
-		err = relay.RelayMessage(ctx)
+		err := relay.RelayMessage(ctx)
 
 		assert.Error(t, err)
 		assert.Equal(t, "error publishing message", err.Error())
@@ -115,10 +112,9 @@ func TestRetry(t *testing.T) {
 	t.Run("test retry with retriers", func(t *testing.T) {
 		repo := &DummyOutboxRepository{}
 		pub := &DummyPublisher{}
-		relay, err := NewRelay(repo, pub, []Retrier{&DummyRetrier{}})
-		assert.NoError(t, err)
+		relay := &Relay{Repo: repo, Publisher: pub}
 
-		err = relay.Retry(ctx, errors.New("based on the error type, we can retry or not"))
+		err := relay.Retry(ctx, errors.New("based on the error type, we can retry or not"))
 
 		assert.NoError(t, err)
 	})
@@ -126,10 +122,13 @@ func TestRetry(t *testing.T) {
 	t.Run("test retry with retriers with error", func(t *testing.T) {
 		repo := &DummyOutboxRepository{}
 		pub := &DummyPublisher{}
-		relay, err := NewRelay(repo, pub, []Retrier{&DummyRetrier{err: errors.New("error retrying")}})
-		assert.NoError(t, err)
+		relay := &Relay{
+			Repo:      repo,
+			Publisher: pub,
+			Retriers:  []Retrier{&DummyRetrier{err: errors.New("error retrying")}},
+		}
 
-		err = relay.Retry(ctx, errors.New("based on the error type, we can retry or not"))
+		err := relay.Retry(ctx, errors.New("based on the error type, we can retry or not"))
 
 		assert.Error(t, err)
 	})

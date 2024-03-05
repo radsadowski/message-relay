@@ -36,11 +36,11 @@ func (m *MySQLWithRabbitMQRelayInitializer) InitRelay() (*relay.Relay, error) {
 	}
 	// &MySQLRetrier{DB: repo.DB, Logger: m.Logger}
 	retriers := []relay.Retrier{}
-	relay, err := relay.NewRelay(repo, publisher, retriers)
-	if err != nil {
-		return nil, err
-	}
-	return relay, nil
+	return &relay.Relay{
+		Repo:      repo,
+		Publisher: publisher,
+		Retriers:  retriers,
+	}, nil
 }
 
 type GetInitializerFunc func(*Config) (RelayInitializer, error)

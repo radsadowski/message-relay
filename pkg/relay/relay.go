@@ -18,36 +18,28 @@ type Retrier interface {
 }
 
 type Relay struct {
-	repo      MessageOutboxRepository
-	publisher Publisher
-	retriers  []Retrier
-}
-
-func NewRelay(repo MessageOutboxRepository, publisher Publisher, retriers []Retrier) (*Relay, error) {
-	return &Relay{
-		repo:      repo,
-		publisher: publisher,
-		retriers:  retriers,
-	}, nil
+	Repo      MessageOutboxRepository
+	Publisher Publisher
+	Retriers  []Retrier
 }
 
 func (r *Relay) RelayMessage(ctx context.Context) error {
-	m, err := r.repo.FetchMessage(ctx)
+	m, err := r.Repo.FetchMessage(ctx)
 	if err != nil {
 		return err
 	}
 	if m.IsSent {
 		return &MessageAlreadySentError{MessageID: m.ID}
 	}
-	err = r.publisher.Publish(ctx, m)
+	err = r.Publisher.Publish(ctx, m)
 	if err != nil {
 		return err
 	}
-	return r.repo.SetMessageAsSent(ctx, m)
+	return r.Repo.SetMessageAsSent(ctx, m)
 }
 
 func (r *Relay) Retry(ctx context.Context, err error) error {
-	for _, retrier := range r.retriers {
+	for _, retrier := range r.Retriers {
 		err := retrier.Retry(ctx, err)
 		if err != nil {
 			return err
