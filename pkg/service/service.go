@@ -76,16 +76,12 @@ func (s *Service) shutdown(cancel context.CancelFunc, signal os.Signal) {
 }
 
 // Start is a function that starts the service
-func Start(ctx context.Context, conf *Config, getInit GetInitializerFunc) error {
+func Start(ctx context.Context, conf *Config, initializer RelayInitializer) error {
 	logger := log.New()
 	logger.SetReportCaller(true)
 	logger.SetFormatter(&log.TextFormatter{FullTimestamp: true})
+	logger.SetLevel(conf.MustParseLogLevel())
 
-	initializer, err := getInit(conf)
-	if err != nil {
-		logger.Errorf("failed to initialize the relay: %v", err)
-		return err
-	}
 	messageRelay, err := initializer.InitRelay()
 	if err != nil {
 		logger.Errorf("failed to initialize the relay: %v", err)
