@@ -26,23 +26,23 @@ linters:
   disable-all: true
   enable:
     - revive
-    # - ifshort
-    # - staticcheck
-    # - gosec
-    # - dogsled
-    # - godox
-    # - megacheck
-    # - govet
-    # - gocyclo
-    # - lll
-    # - funlen
-    # - gofmt
-    # - gocognit
-    # - dupl
-    # - depguard
-    # - whitespace
-    # - goconst
-    # - unconvert
+    - ifshort
+    - staticcheck
+    - gosec
+    - dogsled
+    - godox
+    - megacheck
+    - govet
+    - gocyclo
+    - lll
+    - funlen
+    - gofmt
+    - gocognit
+    - dupl
+    - depguard
+    - whitespace
+    - goconst
+    - unconvert
 
 issues:
   max-issues-per-linter: 0
