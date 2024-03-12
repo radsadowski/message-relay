@@ -14,7 +14,7 @@ type Config struct {
 	LogLevel      string
 }
 
-func (c *Config) MustParseLogLevel() log.Level {
+func (c *Config) mustParseLogLevel() log.Level {
 	level, err := log.ParseLevel(c.LogLevel)
 	if err != nil {
 		log.Fatalf("failed to parse log level: %s", c.LogLevel)

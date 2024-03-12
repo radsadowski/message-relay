@@ -19,7 +19,8 @@ type SQLMessage struct {
 	CreatedAt time.Time `gorm:"index"`
 }
 
-// MessageOutboxRepository is an interface implementation that defines the methods for interacting with the message outbox
+// MySQLMessageOutboxRepository is an interface implementation that
+// defines the methods for interacting with the message outbox
 type MySQLMessageOutboxRepository struct {
 	// DB is a pointer to the database connection
 	DB *gorm.DB
@@ -52,11 +53,13 @@ func (m *MySQLMessageOutboxRepository) SetMessageAsSent(ctx context.Context, msg
 	return tx.Error
 }
 
+// MySQLRetrier is a struct that represents a MySQL retrier
 type MySQLRetrier struct {
 	DB     *gorm.DB
 	Logger *log.Logger
 }
 
+// Retry is a method that retries the database connection
 func (d *MySQLRetrier) Retry(ctx context.Context, err error) error {
 	e, ok := err.(*net.OpError)
 	if !ok {

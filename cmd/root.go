@@ -1,6 +1,8 @@
 /*
+Package cmd provides the command line interface for the message-relay application
 Copyright © 2024 Radoslaw Skalbania <ra.skalbania@gmail.com>
-*/package cmd
+*/
+package cmd
 
 import (
 	"context"
@@ -9,6 +11,7 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
+// App is the main entry point for the application
 var App = &cli.App{
 	Name:  "message-relay",
 	Usage: "Relay messages from the outbox to the broker",
@@ -21,7 +24,7 @@ var App = &cli.App{
 		loggingLevelFlag,
 	},
 	Action: func(cCtx *cli.Context) error {
-		// TODO: argument validation - we should validate DB and broker URLs based on their format
+		// TD argument validation - we should validate DB and broker URLs based on their format
 		return service.Start(
 			context.Background(),
 			&service.Config{

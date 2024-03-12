@@ -1,3 +1,4 @@
+// Package service contains the logic that spins up the service and handles the incoming messages.
 package service
 
 import (
@@ -23,7 +24,7 @@ type Service struct {
 // NewService is a constructor for the Service
 func NewService(ctx context.Context, messageRelay *relay.Relay, config *Config, logger *log.Logger) *Service {
 	signalCh := make(chan os.Signal, 1)
-	signal.Notify(signalCh, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGKILL)
+	signal.Notify(signalCh, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
 	healthCh := make(chan struct{})
 
 	go func() {
@@ -61,7 +62,10 @@ func (s *Service) relay(ctx context.Context) {
 	s.logger.Info("relaying message...")
 	err := s.messageRelay.RelayMessage(ctx)
 	if err != nil {
-		s.messageRelay.Retry(ctx, err)
+		err := s.messageRelay.Retry(ctx, err)
+		if err != nil {
+			s.logger.Errorf("failed to retry the message: %v", err)
+		}
 	} else {
 		s.logger.Info("message relayed successfully")
 		relayedMessagesCounter.Inc()
@@ -80,7 +84,7 @@ func Start(ctx context.Context, conf *Config, initializer RelayInitializer) erro
 	logger := log.New()
 	logger.SetReportCaller(true)
 	logger.SetFormatter(&log.TextFormatter{FullTimestamp: true})
-	logger.SetLevel(conf.MustParseLogLevel())
+	logger.SetLevel(conf.mustParseLogLevel())
 
 	messageRelay, err := initializer.InitRelay()
 	if err != nil {

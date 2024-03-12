@@ -9,11 +9,13 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// RabbitMQPublisher is a struct that represents a RabbitMQ publisher
 type RabbitMQPublisher struct {
 	Channel *amqp.Channel
 	Queue   amqp.Queue
 }
 
+// NewRabbitMQPublisher is a constructor for the RabbitMQPublisher
 func NewRabbitMQPublisher(brokerURL string) (*RabbitMQPublisher, error) {
 	conn, err := amqp.Dial(brokerURL)
 	if err != nil {
@@ -55,11 +57,13 @@ func (r *RabbitMQPublisher) Publish(ctx context.Context, msg *relay.Message) err
 	})
 }
 
+// RabbitMQRetrier is a struct that represents a RabbitMQ retrier
 type RabbitMQRetrier struct {
 	logger *log.Logger
 }
 
-func (r *RabbitMQRetrier) Retry(ctx context.Context, err error) error {
+// Retry is a method that retries the RabbitMQ connection
+func (r *RabbitMQRetrier) Retry(_ context.Context, err error) error {
 	e, ok := err.(*amqp.Error)
 	if !ok {
 		return nil

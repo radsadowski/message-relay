@@ -14,14 +14,14 @@ type DummyOutboxRepository struct {
 	err error
 }
 
-func (d *DummyOutboxRepository) FetchMessage(ctx context.Context) (*Message, error) {
+func (d *DummyOutboxRepository) FetchMessage(_ context.Context) (*Message, error) {
 	if d.err != nil {
 		return nil, d.err
 	}
 	return d.m, nil
 }
 
-func (d *DummyOutboxRepository) SetMessageAsSent(ctx context.Context, msg *Message) error {
+func (d *DummyOutboxRepository) SetMessageAsSent(_ context.Context, msg *Message) error {
 	if d.err != nil {
 		return d.err
 	}
@@ -33,7 +33,7 @@ type DummyPublisher struct {
 	err error
 }
 
-func (d *DummyPublisher) Publish(ctx context.Context, msg *Message) error {
+func (d *DummyPublisher) Publish(_ context.Context, _ *Message) error {
 	if d.err != nil {
 		return d.err
 	}
@@ -99,7 +99,7 @@ type DummyRetrier struct {
 	err error
 }
 
-func (d *DummyRetrier) Retry(ctx context.Context, err error) error {
+func (d *DummyRetrier) Retry(_ context.Context, _ error) error {
 	if d.err != nil {
 		return d.err
 	}

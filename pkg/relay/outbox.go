@@ -13,6 +13,7 @@ type Message struct {
 	IsSent    bool      `json:"is_sent"`
 }
 
+// MessageOutboxRepository is an interface that represents the outbox repository
 type MessageOutboxRepository interface {
 	// FetchMessage is responsible for fetching the unsent messages from the outbox
 	FetchMessage(ctx context.Context) (*Message, error)
