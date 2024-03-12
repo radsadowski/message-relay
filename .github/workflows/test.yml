@@ -8,17 +8,17 @@ jobs:
         go-version: ["1.21.x"]
     steps:
       - uses: actions/checkout@v4
-      - name: setup go ${{ matrix.go-version }}
+      - name: Setup go ${{ matrix.go-version }}
         uses: actions/setup-go@v4
         with:
           go-version: ${{ matrix.go-version }}
-      - name: static analysis
+      - name: Static analysis
         uses: golangci/golangci-lint-action@v4
         with:
           version: v1.55.2
-      - name: start environment
+      - name: Start environment
         run: docker compose -f docker/docker-compose.yml up -d
-      - name: wait for services to be ready # TODO - implement proper wait
+      - name: Wait for services to be ready # TODO - implement proper wait
         run: sleep 10
-      - name: run tests
+      - name: Run tests
         run: make tests
