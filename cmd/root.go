@@ -24,7 +24,6 @@ var App = &cli.App{
 		loggingLevelFlag,
 	},
 	Action: func(cCtx *cli.Context) error {
-		// TD argument validation - we should validate DB and broker URLs based on their format
 		return service.Start(
 			context.Background(),
 			&service.Config{

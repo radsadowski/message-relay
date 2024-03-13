@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -17,7 +18,7 @@ type Config struct {
 func (c *Config) mustParseLogLevel() log.Level {
 	level, err := log.ParseLevel(c.LogLevel)
 	if err != nil {
-		log.Fatalf("failed to parse log level: %s", c.LogLevel)
+		panic(fmt.Sprintf("failed to parse log level: %s", c.LogLevel))
 	}
 	return level
 }
