@@ -10,15 +10,15 @@ services:
       - 8080:8080
       - 8081:8081
     depends_on:
-      - broker
-      - db
+      db:
+        condition: service_healthy
     restart: on-failure
     healthcheck:
-      test: curl -f http://localhost:8080 || exit 1
+      test: curl --fail http://localhost:8080 || exit 1
       interval: 20s
-      timeout: 5s
-      retries: 10
+      retries: 5
       start_period: 20s
+      timeout: 5s
 
   broker:
     image: rabbitmq:3.12.12-management
@@ -35,6 +35,10 @@ services:
       MYSQL_USER: admin
       MYSQL_PASSWORD: secret123
       MYSQL_DATABASE: outbox
+    healthcheck:
+      test: mysqladmin ping -u admin -psecret123
+      timeout: 20s
+      retries: 10
     ports:
       - 3306:3306
     volumes:
