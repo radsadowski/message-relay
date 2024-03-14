@@ -30,6 +30,7 @@ var App = &cli.App{
 				BatchSize:     cCtx.Int("batch-size"),
 				RelayInterval: cCtx.Duration("relay-interval"),
 				RetriesCount:  cCtx.Int("retries"),
+				LogLevel:      cCtx.String("log-level"),
 			},
 			&service.MySQLWithRabbitMQRelayInitializer{
 				DBURL:     cCtx.String("database-url"),

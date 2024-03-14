@@ -17,8 +17,6 @@ jobs:
         with:
           version: v1.55.2
       - name: Start environment
-        run: docker compose -f docker/docker-compose.yml up -d
-      - name: Wait for services to be ready # TODO - implement proper wait
-        run: sleep 10
+        run: make start 
       - name: Run tests
         run: make tests

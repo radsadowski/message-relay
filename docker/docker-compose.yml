@@ -9,6 +9,16 @@ services:
     ports:
       - 8080:8080
       - 8081:8081
+    depends_on:
+      - broker
+      - db
+    restart: on-failure
+    healthcheck:
+      test: curl -f http://localhost:8080 || exit 1
+      interval: 10s
+      timeout: 2s
+      retries: 3
+      start_period: 10s
 
   broker:
     image: rabbitmq:3.12.12-management

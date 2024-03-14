@@ -3,6 +3,12 @@ SHELL := /bin/bash
 
 APP_NAME = outbox 
 
+start: ## start the outbox service
+	@docker compose -f docker/docker-compose.yml up --build --wait
+
+stop: ## stop the outbox service
+	@docker compose -f docker/docker-compose.yml down -t 1
+
 help: ## show help
 	@echo -e "$$(grep -hE '^\S+:.*##' $(MAKEFILE_LIST) | sed -e 's/:.*##\s*/:/' -e 's/^\(.\+\):\(.*\)/\\x1b[36m\1\\x1b[m:\2/' | column -c2 -t -s :)"
 
